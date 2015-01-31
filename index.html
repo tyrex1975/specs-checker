@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+<title>Geo</title>
+
+<script src="//code.jquery.com/jquery-1.11.1.min.js"></script>
+
+<script type="text/javascript">
+var timerStart, timerInterval;
+var mps_to_mph = 2.2369362920544;
+var average;
+
+var options = {
+	timeout:10000,
+	enableHighAccuracy: true,
+	frequency: 5000
+};
+
+function showLocation(position) {
+	var timerNow = new Date().getTime();
+	var elapsedInterval = timerNow - timerInterval;
+	var elapsedStart = timerNow - timerStart;
+	var speed = position.coords.speed;
+
+	average += speed * elapsedInterval;
+
+	$('#current').html(speed * mps_to_mph);
+	$('#average').html((average / elapsedStart) * mps_to_mph);
+	$('#elapsedInterval').html(elapsedInterval);
+	$('#elapsedStart').html(elapsedStart);
+
+	timerInterval = timerNow;
+}
+
+function errorHandler(err) {
+	if (err.code == 1) {
+		$('#test').html('Error: Access is denied!');
+	} else if (err.code == 2) {
+		$('#test').html('Error: Position is unavailable!');
+	}
+}
+
+function getLocationUpdate() {
+	if (navigator.geolocation) {
+		navigator.geolocation.watchPosition(showLocation, errorHandler, options);
+	} else {
+		$('#test').html('Sorry, browser does not support geolocation!');
+	}
+}
+
+$(document).ready(function() {
+	$('#start').click(function() {
+		timerStart = new Date().getTime();
+		timerInterval = timerStart;
+		average = 0;
+		$(this).toggle(false);
+		getLocationUpdate();
+	});
+
+	$('#reset').click(function() {
+		timerStart = new Date().getTime();
+		timerInterval = timerStart;
+		average = 0;
+	});
+});
+
+</script>
+
+</head>
+
+<body>
+Current speed: <span id="current"></span><br>
+Average speed: <span id="average"></span><br>
+Time since last update: <span id="elapsedInterval"></span><br>
+Time since reset: <span id="elapsedStart"></span><br>
+<button id="start">Start</button><button id="reset">Reset</button>
+</body>
+</html>
